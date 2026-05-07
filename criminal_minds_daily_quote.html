@@ -1,0 +1,367 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: transparent; }
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  background: transparent;
+}
+
+.date-label {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 2.5rem;
+  opacity: 0.7;
+}
+
+.quote-card {
+  max-width: 640px;
+  width: 100%;
+  text-align: center;
+}
+
+.quote-mark {
+  font-size: 72px;
+  line-height: 0.5;
+  color: #8b3a3a;
+  margin-bottom: 1.5rem;
+  display: block;
+  font-family: Georgia, serif;
+  opacity: 0.6;
+}
+
+.quote-text {
+  font-size: 22px;
+  line-height: 1.6;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #e8e0d4;
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background: #8b3a3a;
+  margin: 0 auto 1.5rem;
+  opacity: 0.6;
+}
+
+.author {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9a8878;
+}
+
+.character {
+  font-size: 12px;
+  color: #6b5e54;
+  margin-top: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.episode {
+  font-size: 11px;
+  color: #5a4e46;
+  margin-top: 0.3rem;
+  letter-spacing: 0.04em;
+}
+
+#bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse at 30% 40%, #1a0f0f 0%, #0d0808 60%, #080505 100%);
+}
+</style>
+
+<div id="bg"></div>
+<div id="app">
+  <div class="date-label" id="date-label"></div>
+  <div class="quote-card">
+    <span class="quote-mark">"</span>
+    <p class="quote-text" id="quote-text"></p>
+    <div class="divider"></div>
+    <div class="author" id="author"></div>
+    <div class="character" id="character"></div>
+    <div class="episode" id="episode"></div>
+  </div>
+</div>
+
+<script>
+const quotes = [
+  {q:"The belief in a supernatural source of evil is not necessary. Men alone are quite capable of every wickedness.",a:"Joseph Conrad",c:"Jason Gideon",e:"1.01 Extreme Aggressor"},
+  {q:"All is riddle, and the key to a riddle is another riddle.",a:"Ralph Waldo Emerson",c:"Jason Gideon",e:"1.01 Extreme Aggressor"},
+  {q:"The farther backward you can look, the farther forward you will see.",a:"Winston Churchill",c:"Jason Gideon",e:"1.01 Extreme Aggressor"},
+  {q:"When you look long into an abyss, the abyss looks into you.",a:"Friedrich Nietzsche",c:"Jason Gideon",e:"1.01 Extreme Aggressor"},
+  {q:"Try again, fail again. Fail better.",a:"Samuel Beckett",c:"Jason Gideon",e:"1.01 Extreme Aggressor"},
+  {q:"Don't bother just to be better than your contemporaries or predecessors. Try to be better than yourself.",a:"William Faulkner",c:"Jason Gideon",e:"1.02 Compulsion"},
+  {q:"Imagination is more important than knowledge. Knowledge is limited; imagination encircles the world.",a:"Albert Einstein",c:"Jason Gideon",e:"1.02 Compulsion"},
+  {q:"Almost all absurdity of conduct arises from the imitation of those who we cannot resemble.",a:"Samuel Johnson",c:"Jason Gideon",e:"1.03 Won't Get Fooled Again"},
+  {q:"Don't forget that I cannot see myself, that my role is limited to being the one who looks in the mirror.",a:"Jacques Rigaut",c:"Jason Gideon",e:"1.04 Plain Sight"},
+  {q:"Birds sing after a storm. Why shouldn't people feel as free to delight in whatever sunlight remains to them?",a:"Rose Kennedy",c:"Jason Gideon",e:"1.04 Plain Sight"},
+  {q:"When a good man is hurt, all who would be called good must suffer with him.",a:"Euripides",c:"Jason Gideon",e:"1.05 Broken Mirror"},
+  {q:"When love is in excess it brings a man no honor nor worthiness.",a:"Euripides",c:"Jason Gideon",e:"1.05 Broken Mirror"},
+  {q:"The irrationality of a thing is not an argument against its existence, rather a condition of it.",a:"Friedrich Nietzsche",c:"Jason Gideon",e:"1.06 L.D.S.K."},
+  {q:"Nothing is so common as the wish to be remarkable.",a:"William Shakespeare",c:"Aaron Hotchner",e:"1.06 L.D.S.K."},
+  {q:"With foxes we must play the fox.",a:"Dr. Thomas Fuller",c:"Jason Gideon",e:"1.07 The Fox"},
+  {q:"There is no hunting like the hunting of man; and those who have hunted armed men long enough and liked it never really care for anything else.",a:"Ernest Hemingway",c:"Jason Gideon",e:"1.08 Natural Born Killer"},
+  {q:"The healthy man does not torture others. Generally, it is the tortured who turn into torturers.",a:"Carl Jung",c:"Jason Gideon",e:"1.08 Natural Born Killer"},
+  {q:"A belief is not merely an idea the mind possesses; it is an idea that possesses the mind.",a:"Robert Oxton Bolt",c:"Jason Gideon",e:"1.09 Derailed"},
+  {q:"The question that sometimes drives me hazy: Am I or the others crazy?",a:"Albert Einstein",c:"Spencer Reid",e:"1.09 Derailed"},
+  {q:"Ideologies separate us. Dreams and anguish bring us together.",a:"Eugene Ionesco",c:"Jason Gideon",e:"1.10 The Popular Kids"},
+  {q:"The bitterest tears shed over graves are for words left unsaid and deeds left undone.",a:"Harriet Beecher Stowe",c:"Jason Gideon",e:"1.11 Blood Hungry"},
+  {q:"Evil is unspectacular, and always human, and shares our bed and eats at our table.",a:"W. H. Auden",c:"Jason Gideon",e:"1.12 What Fresh Hell?"},
+  {q:"What is food to one, is to others bitter poison.",a:"Lucretius",c:"Jason Gideon",e:"1.13 Poison"},
+  {q:"Before you embark on a journey of revenge, dig two graves.",a:"Confucius",c:"Jason Gideon",e:"1.13 Poison"},
+  {q:"What we do for ourselves dies with us. What we do for others and the world remains and is immortal.",a:"Albert Pine",c:"Jason Gideon",e:"1.14 Riding the Lightning"},
+  {q:"It is those we live with and love and should know who elude us.",a:"Norman Maclean",c:"Jason Gideon",e:"1.15 Unfinished Business"},
+  {q:"In the end it's not the years in your life that count. It's the life in your years.",a:"Abraham Lincoln",c:"Elle Greenaway",e:"1.15 Unfinished Business"},
+  {q:"The individual has always had to struggle to keep from being overwhelmed by the tribe.",a:"Friedrich Nietzsche",c:"Aaron Hotchner",e:"1.16 The Tribe"},
+  {q:"Murder is unique in that it abolishes the party it injures, so that society must take the place of the victim and on his behalf demand atonement or grant forgiveness.",a:"W. H. Auden",c:"Jason Gideon",e:"1.17 A Real Rain"},
+  {q:"Better to be violent if there's violence in our hearts than to put on the cloak of non-violence to cover impotence.",a:"Mahatma Gandhi",c:"Jason Gideon",e:"1.17 A Real Rain"},
+  {q:"I object to violence because when it appears to do good, the good is only temporary. The evil it does is permanent.",a:"Mahatma Gandhi",c:"Aaron Hotchner",e:"1.17 A Real Rain"},
+  {q:"A photograph is a secret about a secret. The more it tells you, the less you know.",a:"Diane Arbus",c:"Jason Gideon",e:"1.18 Somebody's Watching"},
+  {q:"Other things may change us, but we start and end with family.",a:"Anthony Brandt",c:"Aaron Hotchner",e:"1.19 Machismo"},
+  {q:"There are some that only employ words for the purpose of disguising their thoughts.",a:"Voltaire",c:"Jason Gideon",e:"1.20 Charm and Harm"},
+  {q:"We are so accustomed to disguise ourselves to others that in the end we become disguised to ourselves.",a:"François de la Rochefoucauld",c:"Jason Gideon",e:"1.20 Charm and Harm"},
+  {q:"Whoever undertakes to set himself up as judge in the field of truth and knowledge is shipwrecked by the laughter of the gods.",a:"Albert Einstein",c:"Jason Gideon",e:"1.21 Secrets and Lies"},
+  {q:"In a time of universal deceit, telling the truth is a revolutionary act.",a:"George Orwell",c:"Jason Gideon",e:"1.21 Secrets and Lies"},
+  {q:"No man needs a vacation so much as the man who has just had one.",a:"Elbert Hubbard",c:"Jason Gideon",e:"1.22 The Fisher King Part 1"},
+  {q:"The defects and faults of the mind are like wounds in the body; after all imaginable care has been taken to heal them up, still there will be a scar left behind.",a:"François de la Rochefoucauld",c:"Jason Gideon",e:"2.01 The Fisher King Part 2"},
+  {q:"The test of the morality of a society is what it does for its children.",a:"Dietrich Bonhoeffer",c:"Jason Gideon",e:"2.02 P911"},
+  {q:"Of all the animals, man is the only one that is cruel. He is the only one that inflicts pain for the pleasure of doing it.",a:"Mark Twain",c:"Jason Gideon",e:"2.03 The Perfect Storm"},
+  {q:"Out of suffering have emerged the strongest souls; the most massive characters are seared with scars.",a:"Kahlil Gibran",c:"Aaron Hotchner",e:"2.03 The Perfect Storm"},
+  {q:"Man is least himself when he talks in his own person. Give him a mask, and he will tell you the truth.",a:"Oscar Wilde",c:"Aaron Hotchner",e:"2.04 Psychodrama"},
+  {q:"The basis of shame is not some personal mistake of ours, but that this humiliation is seen by everyone.",a:"Milan Kundera",c:"Aaron Hotchner",e:"2.04 Psychodrama"},
+  {q:"Although the world is full of suffering, it is full also of the overcoming of it.",a:"Helen Keller",c:"Jason Gideon",e:"2.05 Aftermath"},
+  {q:"We can easily forgive a child who is afraid of the dark; the real tragedy of life is when men are afraid of the light.",a:"Plato",c:"Aaron Hotchner",e:"2.06 The Boogeyman"},
+  {q:"The ultimate choice for a man... is to create or to destroy, to love or to hate.",a:"Erich Fromm",c:"Jennifer Jareau",e:"2.07 North Mammon"},
+  {q:"If men could only know each other, they would never either idolize or hate.",a:"Elbert Hubbard",c:"Aaron Hotchner",e:"2.09 The Last Word"},
+  {q:"All through history, there have been tyrants and murderers, and for a time they can seem invincible, but in the end they always fall, always.",a:"Mahatma Gandhi",c:"Aaron Hotchner",e:"2.09 The Last Word"},
+  {q:"Some of the best lessons are learned from past mistakes.",a:"Dale Turner",c:"Jason Gideon",e:"2.10 Lessons Learned"},
+  {q:"Happy families are all alike. Every unhappy family is unhappy in its own way.",a:"Leo Tolstoy",c:"Emily Prentiss",e:"2.10 Lessons Learned"},
+  {q:"In order to learn the important lessons in life, one must, each day, surmount a fear.",a:"Ralph Waldo Emerson",c:"Jason Gideon",e:"2.11 Sex, Birth, Death"},
+  {q:"Between the idea and the reality, between the motion and the act, falls the shadow.",a:"T.S. Eliot",c:"Spencer Reid",e:"2.11 Sex, Birth, Death"},
+  {q:"Wild animals never kill for sport. Man is the only one to whom the torture and death of his fellow creatures is amusing in itself.",a:"James Anthony Froude",c:"Emily Prentiss",e:"2.21 Open Season"},
+  {q:"Nothing is permanent in this wicked world— not even our troubles.",a:"Charles Chaplin",c:"Jason Gideon",e:"2.22 Legacy"},
+  {q:"I choose my friends for their good looks, my acquaintances for their good characters, and my enemies for their good intellect.",a:"Oscar Wilde",c:"Jason Gideon",e:"2.23 No Way Out II"},
+  {q:"Let your heart feel for the affliction and distress of everyone.",a:"George Washington",c:"Aaron Hotchner",e:"3.02 In Name and Blood"},
+  {q:"He who controls others may be powerful, but he who has mastered himself is mightier still.",a:"Lao-tze",c:"Aaron Hotchner",e:"3.03 Scared to Death"},
+  {q:"You gain strength, courage and confidence by every experience in which you really stop to look fear in the face.",a:"Eleanor Roosevelt",c:"Aaron Hotchner",e:"3.03 Scared to Death"},
+  {q:"Fairy tales do not tell children that dragons exist. Children already know that dragons exist. Fairy tales tell children that dragons can be killed.",a:"G.K. Chesterton",c:"Aaron Hotchner",e:"3.05 Seven Seconds"},
+  {q:"Love all, trust a few, do wrong to none.",a:"William Shakespeare",c:"Penelope Garcia",e:"3.09 Penelope"},
+  {q:"A fool's paradise is a wise man's hell.",a:"Thomas Fuller",c:"Aaron Hotchner",e:"4.04 Paradise"},
+  {q:"Things are not always what they seem; the first appearance deceives many. The intelligence of a few, perceives what has been carefully hidden.",a:"Phaedrus",c:"Aaron Hotchner",e:"4.04 Paradise"},
+  {q:"He who does not punish evil, commands it to be done.",a:"Leonardo da Vinci",c:"Emily Prentiss",e:"4.17 Demonology"},
+  {q:"The prostitute is not, as feminists claim, the victim of men, but rather their conqueror, an outlaw, who controls the sexual channels between nature and culture.",a:"Camille Paglia",c:"Aaron Hotchner",e:"4.16 Pleasure is my Business"},
+  {q:"A weak man has doubts before a decision. A strong man has them afterwards.",a:"Karl Kraus",c:"David Rossi",e:"5.01 Nameless, Faceless"},
+  {q:"One need not be a chamber to be haunted, one need not to be a house. The brain has corridors surpassing material place.",a:"Emily Dickinson",c:"Aaron Hotchner",e:"5.02 Haunted"},
+  {q:"There is no witness so dreadful, no accuser so terrible as the conscience that dwells in the heart of every man.",a:"Polybius",c:"Aaron Hotchner",e:"5.02 Haunted"},
+  {q:"Justice without force is powerless; force without justice is tyrannical.",a:"Blaise Pascal",c:"David Rossi",e:"5.03 Reckoner"},
+  {q:"I have always found that mercy bears richer fruits than strict justice.",a:"Abraham Lincoln",c:"David Rossi",e:"5.03 Reckoner"},
+  {q:"There is no lasting hope in violence, only temporary relief from hopelessness.",a:"Kingman Brewster, Jr.",c:"Derek Morgan",e:"5.04 Hopeless"},
+  {q:"These violent delights have violent ends.",a:"William Shakespeare",c:"Derek Morgan",e:"5.04 Hopeless"},
+  {q:"You don't really understand human nature unless you know why a child on a merry-go-round will wave at his parents every time around and why his parents will always wave back.",a:"William D. Tammeus",c:"Jennifer Jareau",e:"5.05 Cradle to Grave"},
+  {q:"In all the darkest pages of the malign supernatural, there is no more terrible tradition than that of the vampire – a pariah even among demons.",a:"Montague Summers",c:"Spencer Reid",e:"5.07 The Performer"},
+  {q:"Better to write for yourself and have no public than to write for the public and have no self.",a:"Cyril Connolly",c:"Emily Prentiss",e:"5.07 The Performer"},
+  {q:"Man usually avoids attributing cleverness to somebody else unless it's an enemy.",a:"Albert Einstein",c:"Derek Morgan",e:"5.08 Outfoxed"},
+  {q:"He who fights with monsters might take care lest he thereby become a monster. And if you gaze for long into an abyss, the abyss gazes also into you.",a:"Friedrich Nietzsche",c:"Aaron Hotchner",e:"5.09 100"},
+  {q:"So much of what is best in us is bound up in our love of family that it remains the measure of our stability because it measures our sense of loyalty.",a:"Haniel Long",c:"Aaron Hotchner",e:"5.09 100"},
+  {q:"Where we love is home, home that our feet may leave, but not our hearts.",a:"Oliver Wendell Holmes",c:"Aaron Hotchner",e:"5.10 The Slave of Duty"},
+  {q:"What lies behind us and what lies before us are tiny matters compared to what lies within us.",a:"Ralph Waldo Emerson",c:"Aaron Hotchner",e:"5.10 The Slave of Duty"},
+  {q:"Men are more ready to repay an injury than a benefit, because gratitude is a burden and revenge a pleasure.",a:"Tacitus",c:"Emily Prentiss",e:"5.11 Retaliation"},
+  {q:"There is a sacredness in tears. They are not the mark of weakness but of power. They are messengers of overwhelming grief and of unspeakable love.",a:"Washington Irving",c:"Emily Prentiss",e:"5.11 Retaliation"},
+  {q:"Anything you cannot relinquish when it has outlived its usefulness possesses you, and in this materialistic age a great many of us are possessed by our possessions.",a:"Peace Pilgrim",c:"Spencer Reid",e:"5.12 The Uncanny Valley"},
+  {q:"In life, unlike chess, the game continues after checkmate.",a:"Isaac Asimov",c:"Spencer Reid",e:"5.12 The Uncanny Valley"},
+  {q:"Experience is a brutal teacher, but you learn. My God, do you learn.",a:"C.S. Lewis",c:"Jennifer Jareau",e:"5.13 Risky Business"},
+  {q:"Oh, what a tangled web we weave when first we practice to deceive.",a:"Sir Walter Scott",c:"Emily Prentiss",e:"5.14 Parasite"},
+  {q:"If I am what I have, and if I lose what I have, who, then, am I?",a:"Erich Fromm",c:"Emily Prentiss",e:"5.14 Parasite"},
+  {q:"Show me a hero, and I will write you a tragedy.",a:"F. Scott Fitzgerald",c:"David Rossi",e:"5.15 Public Enemy"},
+  {q:"Hope is the thing with feathers, that perches in the soul, and sings the tune without words, and never stops at all.",a:"Emily Dickinson",c:"Jennifer Jareau",e:"5.16 Mosley Lane"},
+  {q:"Hope is the worst of evils, for it prolongs the torments of man.",a:"Friedrich Nietzsche",c:"Jennifer Jareau",e:"5.16 Mosley Lane"},
+  {q:"Family is a haven in a heartless world.",a:"Christopher Lash",c:"Derek Morgan",e:"5.17 Solitary Man"},
+  {q:"We're all of us sentenced to solitary confinement inside our own skins, for life.",a:"Tennessee Williams",c:"Emily Prentiss",e:"5.17 Solitary Man"},
+  {q:"I have found the paradox, that if you love until it hurts, there can be no more hurt, only more love.",a:"Mother Teresa",c:"Aaron Hotchner",e:"5.18 The Fight"},
+  {q:"Nature, in her most dazzling aspects or stupendous parts, is but the background and theater of the tragedy of man.",a:"John Morley",c:"Penelope Garcia",e:"5.21 Exit Wounds"},
+  {q:"Nothing is so strong as gentleness, and nothing is so gentle as real strength.",a:"Ralph W. Sockman",c:"Penelope Garcia",e:"5.21 Exit Wounds"},
+  {q:"The single biggest problem with communication is the illusion that it has taken place.",a:"George Bernard Shaw",c:"Aaron Hotchner",e:"5.22 The Internet Is Forever"},
+  {q:"No man chooses evil because it is evil he only mistakes it for happiness, the good he seeks.",a:"Mary Wollstonecraft Shelley",c:"Emily Prentiss",e:"6.16 Coda"},
+  {q:"The secret to getting away with lying is believing with all your heart. That goes for lying to yourself, even moreso than lying to another.",a:"Elizabeth Bear",c:"Emily Prentiss",e:"6.19 With Friends Like These"},
+  {q:"The old faiths light their candles all about, but burly truth comes by and puts them out.",a:"Lizette Reese",c:"Spencer Reid",e:"6.19 With Friends Like These"},
+  {q:"Man, when he does not grieve, hardly exists.",a:"Antonio Porchia",c:"Derek Morgan",e:"6.20 Hanley Waters"},
+  {q:"And yet to every bad there is a worse.",a:"Thomas Hardy",c:"Aaron Hotchner",e:"6.24 Supply & Demand"},
+  {q:"What it lies in our power to do, it lies in our power not to do.",a:"Aristotle",c:"David Rossi",e:"6.24 Supply & Demand"},
+  {q:"Find the place inside where there's joy, and the joy will burn out the pain.",a:"Joseph Campbell",c:"Unknown",e:"7.08 Hope"},
+  {q:"Evil is always devising more corrosive misery for man's restless need to exact revenge out of his hate.",a:"Ralph Steadman",c:"David Rossi",e:"8.02 The Pact"},
+  {q:"If you win, say nothing. If you lose, say less.",a:"Paul Brown",c:"David Rossi",e:"8.02 The Pact"},
+  {q:"You never find yourself until you face the truth.",a:"Pearl Bailey",c:"David Rossi",e:"8.07 The Fallen"},
+  {q:"It is easier to build strong children than to repair broken men.",a:"Frederick Douglass",c:"Derek Morgan",e:"8.08 The Wheels on the Bus"},
+  {q:"A great deal of talent is lost to the world for want of a little courage.",a:"Sydney Smith",c:"Jennifer Jareau",e:"8.09 Magnificent Light"},
+  {q:"The mystery of human existence lies not in just staying alive, but in finding something to live for.",a:"Fyodor Dostoyevsky",c:"Spencer Reid",e:"8.09 Magnificent Light"},
+  {q:"Love is our true destiny. We do not find the meaning of life by ourselves alone. We find it with another.",a:"Thomas Merton",c:"Spencer Reid",e:"8.10 The Lesson"},
+  {q:"Being deeply loved by someone gives you strength, while loving someone deeply gives you courage.",a:"Lao Tzu",c:"Spencer Reid",e:"8.12 Zugzwang"},
+  {q:"Sometimes the hardest part isn't letting go but rather learning to start over.",a:"Nicole Sobon",c:"Spencer Reid",e:"8.13 Magnum Opus"},
+  {q:"The tragedy of this world is that no one is happy, whether stuck in a time of pain or joy.",a:"Alan Lightman",c:"Aaron Hotchner",e:"8.14 All That Remains"},
+  {q:"Love never dies a natural death. It dies of blindness and errors and betrayals.",a:"Anaïs Nin",c:"Aaron Hotchner",e:"8.14 All That Remains"},
+  {q:"Imitation is the sincerest form of flattery.",a:"Charles Caleb Colton",c:"Aaron Hotchner",e:"8.16 Carbon Copy"},
+  {q:"I can resist anything except temptation.",a:"Oscar Wilde",c:"Spencer Reid",e:"8.17 The Gathering"},
+  {q:"All acts performed in the world begin in the imagination.",a:"Barbara Grizzuti Harrison",c:"Spencer Reid",e:"8.17 The Gathering"},
+  {q:"For darkness restores what light cannot repair.",a:"Joseph Brodsky",c:"Derek Morgan",e:"8.18 Restoration"},
+  {q:"There is no present or future – only the past, happening over and over again.",a:"Eugene O'Neill",c:"Unknown",e:"8.19 Pay It Forward"},
+  {q:"Cruel is the strife of brothers.",a:"Aristotle",c:"Aaron Hotchner",e:"8.23 Brothers Hotchner"},
+  {q:"Rarely do members of the same family grow up under the same roof.",a:"Richard Bach",c:"Aaron Hotchner",e:"8.23 Brothers Hotchner"},
+  {q:"We are not the same persons this year as we are last, nor are those we love. It is a happy chance if we, changing, continue to love a changed person.",a:"W. Somerset Maugham",c:"Alex Blake",e:"8.24 The Replicator"},
+  {q:"Who knows where inspiration comes from. Perhaps it arises from desperation. Perhaps it comes from the flukes of the universe, the kindness of the muses.",a:"Amy Tan",c:"David Rossi",e:"9.01 The Inspiration"},
+  {q:"There are two things in life for which we are never truly prepared: twins.",a:"Josh Billings",c:"Aaron Hotchner",e:"9.01 The Inspiration"},
+  {q:"We are not only our brother's keeper; in countless large and small ways, we are our brother's maker.",a:"Bonaro Overstreet",c:"Derek Morgan",e:"9.02 The Inspired"},
+  {q:"They mess you up, your Mom and Dad. They may not mean to, but they do.",a:"Philip Larkin",c:"Aaron Hotchner",e:"9.02 The Inspired"},
+  {q:"Our most basic common link is that we all inhabit this planet. We all breathe the same air. We all cherish our children's future. And we are all mortal.",a:"John F. Kennedy",c:"David Rossi",e:"9.03 Final Shot"},
+  {q:"Someone I loved once gave me a box full of darkness. It took me years to understand that this too was a gift.",a:"Mary Oliver",c:"Derek Morgan",e:"9.04 To Bear Witness"},
+  {q:"Death is not the greatest loss in life. The greatest loss is what dies inside of us while we live.",a:"Norman Cousins",c:"Aaron Hotchner",e:"9.04 To Bear Witness"},
+  {q:"Life is a dream. Realize it.",a:"Mother Teresa",c:"Aaron Hotchner",e:"9.05 Route 66"},
+  {q:"Death ends a life, not a relationship.",a:"Mitch Albom",c:"Penelope Garcia",e:"9.06 In the Blood"},
+  {q:"If passion drives you, let reason hold the reins.",a:"Benjamin Franklin",c:"David Rossi",e:"9.07 Gatekeeper"},
+  {q:"The most important thing that parents can teach their children is how to get along without them.",a:"Frank Clark",c:"Spencer Reid",e:"9.07 Gatekeeper"},
+  {q:"There is no terror in the bang, only in the anticipation of it.",a:"Alfred Hitchcock",c:"Derek Morgan",e:"9.08 The Return"},
+  {q:"The greater the power, the more dangerous the abuse.",a:"Edmund Burke",c:"Jennifer Jareau",e:"9.08 The Return"},
+  {q:"The universe doesn't like secrets; it conspires to reveal the truth to lead you to it.",a:"Lisa Unger",c:"David Rossi",e:"9.09 Strange Fruit"},
+  {q:"Fear is pain arising from the anticipation of evil.",a:"Aristotle",c:"Spencer Reid",e:"9.10 The Caller"},
+  {q:"We cannot despair of humanity, since we ourselves are human beings.",a:"Albert Einstein",c:"David Rossi",e:"9.10 The Caller"},
+  {q:"Alone we can do so little; together we can do so much.",a:"Helen Keller",c:"Alex Blake",e:"9.11 Bully"},
+  {q:"People often say that this or that person has not yet found himself. But the self is not something one finds, it is something one creates.",a:"Thomas Szasz",c:"Derek Morgan",e:"9.12 The Black Queen"},
+  {q:"To invent your own life's meaning is not easy, but it's still allowed, and I think you'll be happier for the trouble.",a:"Bill Watterson",c:"Penelope Garcia",e:"9.12 The Black Queen"},
+  {q:"Beware the fury of a patient man.",a:"John Dryden",c:"Derek Morgan",e:"9.13 The Road Home"},
+  {q:"Forgiveness does not change the past but it does enlarge the future.",a:"Paul Boese",c:"David Rossi",e:"9.13 The Road Home"},
+  {q:"Why should we look to the past in order to prepare for the future? Because there is nowhere else to look.",a:"James Burke",c:"Emily Prentiss",e:"9.14 200"},
+  {q:"The secret of my influence has always been that it remained secret.",a:"Salvador Dali",c:"Spencer Reid",e:"9.17 Persuasion"},
+  {q:"Illusion is needed to disguise the emptiness within.",a:"Arthur Erickson",c:"David Rossi",e:"9.17 Persuasion"},
+  {q:"Friendship multiplies the good of life and divides the evil.",a:"Baltasar Gracian",c:"Derek Morgan",e:"9.18 Rabid"},
+  {q:"There are times when the mind is dealt such a blow it hides itself in insanity.",a:"Patrick Rothfuss",c:"Derek Morgan",e:"9.19 The Edge of Winter"},
+  {q:"The past is never dead. It's not even past.",a:"William Faulkner",c:"Alex Blake",e:"9.20 Blood Relations"},
+  {q:"A person often meets his destiny on the road he took to avoid it.",a:"Jean de la Fontaine",c:"David Rossi",e:"9.22 Fatal"},
+  {q:"When truth is buried, it grows. It chokes. It gathers such an explosive force that on the day it bursts out, it blows up everything with it.",a:"Emile Zola",c:"Spencer Reid",e:"9.24 Demons"},
+  {q:"We must be willing to get rid of the life we planned so as to have the life that is waiting for us.",a:"Joseph Campbell",c:"Spencer Reid",e:"9.24 Demons"},
+  {q:"Just because everything's different doesn't mean anything has changed.",a:"Irene Peter",c:"Unknown",e:"10.01 X"},
+  {q:"The world will not be destroyed by those who do evil, but by those who watch them without doing anything.",a:"Albert Einstein",c:"Kate Callahan",e:"Season 10"},
+  {q:"Life is about choices. Some we regret, some we're proud of. We are what we chose to be.",a:"Graham Brown",c:"Kate Callahan",e:"Season 10"},
+  {q:"Pleasure in the job puts perfection in the work.",a:"Aristotle",c:"Aaron Hotchner",e:"11.01 The Job"},
+  {q:"Courage is grace under pressure.",a:"Ernest Hemingway",c:"Penelope Garcia",e:"11.01 The Job"},
+  {q:"It is in your moments of decision that your destiny is shaped.",a:"Tony Robbins",c:"Derek Morgan",e:"11.02 The Witness"},
+  {q:"The world is so unpredictable. Things happen suddenly, unexpectedly. We want to feel we are in control of our own existence.",a:"Paul Auster",c:"David Rossi",e:"11.02 The Witness"},
+  {q:"And think not you can direct the course of love, for love, if it finds you worthy, directs your course.",a:"Khalil Gibran",c:"Tara Lewis",e:"11.03 Til death do us part"},
+  {q:"I hold it true, whate'er befall... 'Tis better to have loved and lost than never to have loved at all.",a:"Alfred Lord Tennyson",c:"David Rossi",e:"11.03 Til death do us part"},
+  {q:"All sins tend to be addictive, and the terminal point of addiction is damnation.",a:"W. H. Auden",c:"Spencer Reid",e:"11.04 Outlaw"},
+  {q:"Ghosts were created when the first man awoke in the night.",a:"J. M. Barrie",c:"Spencer Reid",e:"11.05 The night watch"},
+  {q:"The darkness always lies.",a:"Anthony Liccione",c:"Derek Morgan",e:"11.15 A Badge and a gun"},
+  {q:"You see what power is – holding someone else's fear in your hand and showing it to them.",a:"Amy Tan",c:"Jennifer Jareau",e:"11.15 A Badge and a gun"},
+  {q:"Parents are the bones on which children sharpen their teeth.",a:"Peter Ustinov",c:"Derek Morgan",e:"11.17 The sandman"},
+  {q:"Every ending is also a beginning. We just don't know it at the time.",a:"Derek Morgan's Friend",c:"Derek Morgan",e:"11.18 A beautiful disaster"},
+  {q:"Originality is nothing but judicious imitation.",a:"Voltaire",c:"Emily Prentiss",e:"11.19 Tribute"},
+  {q:"Walking with a friend in the dark is better than walking alone in the light.",a:"Helen Keller",c:"Penelope Garcia",e:"11.19 Tribute"},
+  {q:"I imagine one of the reasons people cling to their hates so stubbornly is because they sense, once hate is gone, they will be forced to deal with pain.",a:"James Baldwin",c:"David Rossi",e:"11.20 Inner Beauty"},
+  {q:"Since love grows within you, so beauty grows. For love is the beauty of the soul.",a:"St. Augustine",c:"David Rossi",e:"11.20 Inner Beauty"},
+  {q:"Don't you know that a midnight hour comes when everyone has to take off his mask?",a:"Søren Kierkegaard",c:"Aaron Hotchner",e:"11.21 Devil's Backbone"},
+  {q:"No man really knows about other human beings. The best he can do is to suppose that they are like himself.",a:"John Steinbeck",c:"Tara Lewis",e:"11.21 Devil's Backbone"},
+  {q:"The sea is dangerous and its storms terrible, but these obstacles have never been sufficient reason to remain ashore.",a:"Ferdinand Magellan",c:"Tara Lewis",e:"11.22 The storm"},
+  {q:"The line dividing good and evil comes through the heart of every human being.",a:"Aleksandr Solzhenitsyn",c:"Aaron Hotchner",e:"11.22 The storm"},
+  {q:"The evil that men do lives after them. The good is oft interred with their bones.",a:"William Shakespeare",c:"Aaron Hotchner",e:"12.01 The Crimson King"},
+  {q:"Loss and possession, death and life are one. There falls no shadow where there shines no sun.",a:"Hilaire Belloc",c:"Jennifer Jareau",e:"12.02 Sick day"},
+  {q:"Hold on when there is nothing in you except the will which says, 'Hold on!'",a:"Rudyard Kipling",c:"Spencer Reid",e:"13.01 Wheel's Up"},
+  {q:"Cruelty, like every other vice, requires no motive outside of itself. It only requires opportunity.",a:"George Eliot",c:"Emily Prentiss",e:"13.03 Blue Angel"},
+  {q:"A man travels the world over in search of what he needs and returns home to find it.",a:"George Moore",c:"Matt Simmons",e:"13.03 Blue Angel"},
+  {q:"It is unwise to be too sure of one's own wisdom.",a:"Mahatma Gandhi",c:"Luke Alvez",e:"13.04 Killer App"},
+  {q:"The murderer survives the victim only to learn that it was himself that he longed to be rid of.",a:"Thornton Wilder",c:"Emily Prentiss",e:"13.04 Killer App"},
+  {q:"People like to say that the conflict is between good and evil. The real conflict is between truth and lies.",a:"Don Miguel Ruiz",c:"David Rossi",e:"13.05 Lucky Strikes"},
+  {q:"This is the way the world ends. Not with a bang, but a whimper.",a:"T.S. Eliot",c:"Spencer Reid",e:"13.06 The Bunker"},
+  {q:"Even if I knew that tomorrow the world would go to pieces, I would still plant my apple tree.",a:"Martin Luther",c:"Jennifer Jareau",e:"13.06 The Bunker"},
+  {q:"When there is pain, there are no words. All pain is the same.",a:"Toni Morrison",c:"Emily Prentiss",e:"13.07 Dust and Bones"},
+  {q:"I never travel without my diary. One should always have something sensational to read in the train.",a:"Oscar Wilde",c:"David Rossi",e:"13.08 Neon Terror"},
+  {q:"When you eliminate the impossible, whatever remains, no matter how improbable, must be the truth.",a:"Arthur Conan Doyle",c:"Penelope Garcia",e:"13.09 False Flag"},
+  {q:"Everyone is entitled to his own opinion, but not to his own facts.",a:"Daniel Patrick Moynihan",c:"Tara Lewis",e:"13.09 False Flag"},
+  {q:"Where there is ruin, there is hope for a treasure.",a:"Jalal Uddin Rumi",c:"David Rossi",e:"13.10 Submerged"},
+  {q:"I think it's the human spirit inside all of us that gives us an enormous capacity to survive.",a:"Amanda Lindhout",c:"Penelope Garcia",e:"13.11 Full-Tilt-Boogie"},
+  {q:"It is impossible to suffer without making someone pay for it; every complaint already contains revenge.",a:"Friedrich Nietzsche",c:"Spencer Reid",e:"13.13 Cure"},
+  {q:"My wound is geography. It is also my anchorage, my port of call.",a:"Pat Conroy",c:"Emily Prentiss",e:"13.14 Miasma"},
+  {q:"All of us labor in webs spun long before we were born.",a:"William Faulkner",c:"Jennifer Jareau",e:"13.14 Miasma"},
+  {q:"Family quarrels are bitter things. They don't go according to any rules.",a:"F. Scott Fitzgerald",c:"Emily Prentiss",e:"13.15 Annihilator"},
+  {q:"Death is the mother of beauty; hence from her, alone, shall come fulfillment to our dreams and our desires.",a:"Wallace Stevens",c:"Jennifer Jareau",e:"13.16 Last Gasp"},
+  {q:"It lies not in our power to love or hate, For will in us is overruled by fate.",a:"Christopher Marlowe",c:"Spencer Reid",e:"13.17 The Capilanos"},
+  {q:"Perhaps when we find ourselves wanting everything, it is because we are dangerously close to wanting nothing.",a:"Sylvia Plath",c:"Tara Lewis",e:"13.18 The Dance of Love"},
+  {q:"No matter how far we travel, the memories will follow in the baggage car.",a:"August Strindberg",c:"David Rossi",e:"13.18 The Dance of Love"},
+  {q:"Violence is not a catalyst but a diversion.",a:"Joseph Conrad",c:"Emily Prentiss",e:"13.19 Ex Parte"},
+  {q:"Holding onto anger is like drinking poison and expecting the other person to die.",a:"Anonymous",c:"Emily Prentiss",e:"13.20 All You Can Eat"},
+  {q:"Forgiveness is the fragrance that the violet sheds on the heel that has crushed it.",a:"Mark Twain",c:"Penelope Garcia",e:"13.20 All You Can Eat"},
+  {q:"Convictions are more dangerous foes of truth than lies.",a:"Friedrich Nietzsche",c:"Luke Alvez",e:"13.21 Mixed Signal"},
+  {q:"Holding on is believing that there's only a past; letting go is knowing that there's a future.",a:"Daphne Rose Kingma",c:"Tara Lewis",e:"13.21 Mixed Signal"},
+  {q:"A thing is not necessarily true because a man dies for it.",a:"Oscar Wilde",c:"Penelope Garcia",e:"13.22 Believer"},
+  {q:"The only thing new in the world is the history you do not know.",a:"Harry Truman",c:"Emily Prentiss",e:"14.01 300"},
+  {q:"Memory is a crazy woman that hoards colored rags and throws away food.",a:"Austin O'Malley",c:"David Rossi",e:"14.02 Starter home"},
+  {q:"The charm of fame is so great that we like every object to which it is attached, even death.",a:"Blaise Pascal",c:"David Rossi",e:"14.03 Rule 34"},
+  {q:"We all have a Monster within; the difference is in degree, not in kind.",a:"Douglas Preston",c:"Unknown",e:"14.15 Truth or Dare"},
+  {q:"Man is not what he thinks he is. He is what he hides.",a:"Andre Malraux",c:"David Rossi",e:"15.01 Under the skin"},
+  {q:"Nothing happens until something moves.",a:"Albert Einstein",c:"David Rossi",e:"15.02 Awakenings"},
+  {q:"How lucky am I to have something that makes saying goodbye so hard.",a:"A. A. Milne",c:"Spencer Reid",e:"15.02 Awakenings"},
+  {q:"Life's under no obligation to give us what we expect.",a:"Margaret Mitchell",c:"Emily Prentiss",e:"15.03 Spectator slowing"},
+  {q:"Now I know what a ghost is. Unfinished business, that's what.",a:"Salman Rushdie",c:"Luke Alvez",e:"15.05 Ghost"},
+  {q:"The only reason why we ask other people how their weekend was is so we can tell them about our own weekend.",a:"Chuck Palahniuk",c:"Penelope Garcia",e:"15.04 Saturday"},
+  {q:"History has a way of altering villains so that we can no longer see ourselves in them.",a:"Adam Serwer",c:"Emily Prentiss",e:"15.07 Rusty"},
+  {q:"We must be willing to let go of the life we have planned, so as to accept the one that is waiting for us.",a:"Joseph Campbell",c:"Emily Prentiss",e:"15.07 Rusty"},
+  {q:"Damaged people are dangerous. They know they can survive.",a:"Josephine Harper",c:"David Rossi",e:"15.09 Face off"},
+  {q:"The tragedy of life is not death, but what we let die inside of us while we live.",a:"Norman Cousins",c:"David Rossi",e:"Evolution 1.01"},
+  {q:"In the face of pain, there are no heroes.",a:"George Orwell",c:"David Rossi",e:"Evolution 1.03"},
+  {q:"Beware the fury of a patient man.",a:"John Dryden",c:"David Rossi",e:"Evolution 1.04"},
+  {q:"For after all, the best thing one can do when it is raining is let it rain.",a:"Henry Wadsworth Longfellow",c:"Doug Bailey",e:"Evolution 1.07"},
+  {q:"Few things can help an individual more than to place responsibility on him and to let him know that you trust him.",a:"Booker T. Washington",c:"Emily Prentiss",e:"Evolution 1.08"},
+  {q:"Man cannot possess anything as long as he fears death, but to him who does not fear it, everything belongs.",a:"Leo Tolstoy",c:"David Rossi",e:"Evolution 1.10"},
+  {q:"The heart wants what it wants, or else it doesn't care.",a:"Emily Dickinson",c:"Luke Alvez",e:"Evolution 1.10"},
+  {q:"It's wrong what they say about the past, I've learned, about how you can bury it. Because the past claws its way out.",a:"Khaled Hosseini",c:"Emily Prentiss",e:"Evolution 2.01"},
+  {q:"In the kingdom of the blind, the one-eyed man is king.",a:"Desiderius Erasmus",c:"Emily Prentiss",e:"Evolution 2.04"},
+  {q:"Beware, for I am fearless, and therefore powerful.",a:"Mary Shelley",c:"Elias Voit",e:"Evolution 2.05"},
+  {q:"Our virtues and our failings are inseparable, like force and matter. When they separate, man is no more.",a:"Nikola Tesla",c:"David Rossi",e:"Evolution 2.06"},
+  {q:"Through pride, we are ever deceiving ourselves. But deep down below the surface of the average conscience a still, small voice says to us, something is out of tune.",a:"Carl Jung",c:"David Rossi",e:"Evolution 2.07"},
+  {q:"The richest love is that which submits to the arbitration of time.",a:"Lawrence Durrell",c:"Emily Prentiss",e:"Evolution 2.08"},
+  {q:"Betrayal is the only truth that sticks.",a:"Arthur Miller",c:"Elias Voit",e:"Evolution 2.09"},
+  {q:"All water has a perfect memory and is forever trying to get back to where it was.",a:"Toni Morrison",c:"Emily Prentiss",e:"Evolution 3.01"},
+  {q:"Every man takes the limits of his own field of vision for the limits of the world.",a:"Arthur Schopenhauer",c:"David Rossi",e:"Evolution 3.02"},
+  {q:"People who believe that they are strong-willed and the masters of their destiny can only continue to believe this by becoming specialists in self-deception.",a:"James Baldwin",c:"Elias Voit",e:"Evolution 1.06"},
+];
+
+function getDayOfYear(date) {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  return Math.floor(diff / oneDay);
+}
+
+function getQuoteForToday() {
+  const now = new Date();
+  const day = getDayOfYear(now);
+  const year = now.getFullYear();
+  const seed = year * 1000 + day;
+  const idx = seed % quotes.length;
+  return quotes[idx];
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+const q = getQuoteForToday();
+const now = new Date();
+
+document.getElementById('date-label').textContent = formatDate(now);
+document.getElementById('quote-text').textContent = q.q;
+document.getElementById('author').textContent = '— ' + q.a;
+document.getElementById('character').textContent = q.c;
+document.getElementById('episode').textContent = 'Criminal Minds · ' + q.e;
+</script>
